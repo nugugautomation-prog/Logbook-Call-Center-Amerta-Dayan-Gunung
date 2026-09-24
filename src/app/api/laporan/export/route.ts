@@ -36,12 +36,15 @@ export async function GET(request: NextRequest) {
       tickets = DEMO_TICKETS
     } else {
       const supabase = createClient()
-      let startISO = new Date(startDate).toISOString()
-      let endISO = new Date(endDate + 'T23:59:59').toISOString()
+      let startISO: string
+      let endISO: string
       try {
         startISO = new Date(startDate).toISOString()
         endISO = new Date(endDate + 'T23:59:59').toISOString()
-      } catch {}
+      } catch {
+        startISO = startDate
+        endISO = endDate
+      }
 
     const { data, error } = await supabase
       .from('tickets')
@@ -158,11 +161,9 @@ export async function GET(request: NextRequest) {
       'Content-Length': buffer.length.toString(),
     },
   })
-  } catch (err: any) {
+  } catch (err) {
     console.error('Export Excel error:', err)
-    return NextResponse.json(
-      { error: err?.message || 'Terjadi kesalahan saat memproses laporan' },
-      { status: 500 }
-    )
+    const message = err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses laporan'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

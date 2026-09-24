@@ -161,24 +161,24 @@ export async function lookupCustomer(input: string): Promise<CustomerLookupResul
         .maybeSingle()
 
       if (customer) {
-      return {
-        type: 'full',
-        ...baseResult,
-        customer: {
-          id: customer.id,
-          nama: customer.nama,
-          alamat: customer.alamat_detail ?? '',
-          noHp: customer.no_hp ?? '',
-          golongan: customer.golongan_pelanggan ?? '',
-          latitude: customer.latitude,
-          longitude: customer.longitude,
-        },
+        return {
+          type: 'full',
+          ...baseResult,
+          customer: {
+            id: customer.id,
+            nama: customer.nama,
+            alamat: customer.alamat_detail ?? '',
+            noHp: customer.no_hp ?? '',
+            golongan: customer.golongan_pelanggan ?? '',
+            latitude: customer.latitude,
+            longitude: customer.longitude,
+          },
+        }
       }
+    } catch {
+      // Return partial
     }
-  } catch {
-    // Return partial
   }
-}
 
   return { type: 'partial', ...baseResult }
 }

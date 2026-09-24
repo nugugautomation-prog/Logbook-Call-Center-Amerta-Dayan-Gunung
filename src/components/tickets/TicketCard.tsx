@@ -52,8 +52,8 @@ export function TicketCard({ ticket, onStatusUpdated }: TicketCardProps) {
       } else {
         setError(result.error || 'Gagal mengubah status tiket')
       }
-    } catch (err: any) {
-      setError(err?.message || 'Terjadi kendala saat memperbarui status')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Terjadi kendala saat memperbarui status')
     } finally {
       setIsUpdating(false)
     }

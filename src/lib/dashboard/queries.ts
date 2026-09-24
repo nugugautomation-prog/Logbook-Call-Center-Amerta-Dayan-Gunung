@@ -1,7 +1,21 @@
 import { createClient } from '@/lib/supabase/client'
 import { MASTER_WILAYAH_PDAM } from '@/lib/constants/master-wilayah'
+import { isDummySupabase } from '@/lib/supabase/is-dummy'
 
 export type Period = 'today' | 'week' | 'month' | 'custom'
+
+// Supabase join relations can return an array or single object depending on cardinality.
+// This helper normalises both shapes into a string value.
+function getJoinedName(
+  val: Record<string, unknown> | Record<string, unknown>[] | null | undefined,
+  field: string,
+  fallback = '-'
+): string {
+  if (!val) return fallback
+  if (Array.isArray(val) && val.length > 0) return (val[0][field] as string) || fallback
+  if (typeof val === 'object' && !Array.isArray(val) && val[field]) return val[field] as string
+  return fallback
+}
 
 export function getPeriodDates(period: Period, customStart?: string, customEnd?: string) {
   const now = new Date()
@@ -34,9 +48,6 @@ export function getPeriodDates(period: Period, customStart?: string, customEnd?:
       }
   }
 }
-
-import { isDummySupabase } from '@/lib/supabase/is-dummy'
-
 
 export async function getDashboardSummary(start: string, end: string) {
   if (isDummySupabase()) {
@@ -93,13 +104,6 @@ export async function getDashboardSummary(start: string, end: string) {
       channelMap[t.channel] = (channelMap[t.channel] ?? 0) + 1
     })
 
-    const getJoinedName = (val: any, field: string, fallback = '-') => {
-      if (!val) return fallback
-      if (Array.isArray(val) && val.length > 0) return val[0][field] || fallback
-      if (typeof val === 'object' && val[field]) return val[field]
-      return fallback
-    }
-
     const kategoriMap: Record<string, number> = {}
     tickets.forEach((t: any) => {
       const nama = getJoinedName(t.kategori, 'nama', 'Lainnya')
@@ -155,13 +159,6 @@ export async function getTopWilayah(start: string, end: string) {
 
     if (!data) return []
 
-    const getJoinedName = (val: any, field: string, fallback = '-') => {
-      if (!val) return fallback
-      if (Array.isArray(val) && val.length > 0) return val[0][field] || fallback
-      if (typeof val === 'object' && val[field]) return val[field]
-      return fallback
-    }
-
     const wilayahMap: Record<string, { desaId: string; nama: string; kecamatan: string; jumlah: number }> = {}
     data.forEach((t: any) => {
       if (!t.desa_id) return
@@ -209,14 +206,7 @@ export async function getRekapKecamatan(start: string, end: string) {
       Gangga: 0,
     }
 
-    const getJoinedName = (val: any, field: string, fallback = '-') => {
-      if (!val) return fallback
-      if (Array.isArray(val) && val.length > 0) return val[0][field] || fallback
-      if (typeof val === 'object' && val[field]) return val[field]
-      return fallback
-    }
-
-    (data || []).forEach((t: any) => {
+    ;(data || []).forEach((t: any) => {
       const kecNama = getJoinedName(t.kecamatan, 'nama_kecamatan', '')
       if (kecNama && cabangMap[kecNama] !== undefined) {
         cabangMap[kecNama]++

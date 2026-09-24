@@ -254,4 +254,3 @@ export async function getTicketById(id: string) {
 
   return { data, error }
 }
-

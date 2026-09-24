@@ -144,4 +144,3 @@ export async function toggleMasterItemActive(
   revalidatePath('/pengaturan')
   return { success: true }
 }
-
