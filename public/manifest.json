@@ -1,0 +1,21 @@
+{
+  "name": "Call Center PDAM - Logbook & Ticketing",
+  "short_name": "CC PDAM",
+  "description": "Aplikasi Logbook & Ticketing Call Center PDAM Amerta Dayan Gunung",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#1B4F8A",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
