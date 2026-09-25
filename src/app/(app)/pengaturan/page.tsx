@@ -23,32 +23,29 @@ export default async function PengaturanPage() {
   if (!isDummySupabase()) {
     try {
       const supabase = createClient()
-      const [
-        { data: it },
-        { data: cat },
-        { data: ht },
-        { data: dist },
-        { data: vil },
-      ] = await Promise.all([
-        supabase.from('interaction_types').select('*').order('urutan'),
-        supabase.from('categories').select('*').order('urutan'),
-        supabase.from('handling_types').select('*').order('urutan'),
-        supabase.from('districts').select('*').order('kode_kecamatan'),
-        supabase.from('villages').select('*, districts(nama_kecamatan)').order('kode_desa'),
-      ])
+      
+      const resIt = await supabase.from('interaction_types').select('*').order('urutan')
+      const resCat = await supabase.from('categories').select('*').order('urutan')
+      const resHt = await supabase.from('handling_types').select('*').order('urutan')
+      const resDist = await supabase.from('districts').select('*').order('kode_kecamatan')
+      const resVil = await supabase.from('villages').select('*, districts(nama_kecamatan)').order('kode_desa')
 
-      interactionTypes = it || []
-      categories = cat || []
-      handlingTypes = ht || []
-      districts = dist || []
-      villages = vil || []
+      if (resIt.error) console.error('Error IT:', resIt.error)
+      if (resCat.error) console.error('Error Cat:', resCat.error)
+      if (resVil.error) console.error('Error Vil:', resVil.error)
+
+      interactionTypes = resIt.data || []
+      categories = resCat.data || []
+      handlingTypes = resHt.data || []
+      districts = resDist.data || []
+      villages = resVil.data || []
     } catch (err) {
       console.warn('Could not load master data from supabase:', err)
     }
   }
 
-  // Fallback defaults jika tabel masih kosong di mode lokal/dev
-  if (interactionTypes.length === 0) {
+  // Fallback defaults HANYA jika dalam mode dummy
+  if (isDummySupabase() && interactionTypes.length === 0) {
     interactionTypes = [
       { id: '1', nama: 'Komplain', aktif: true, urutan: 1 },
       { id: '2', nama: 'Pertanyaan/Informasi', aktif: true, urutan: 2 },
@@ -58,7 +55,7 @@ export default async function PengaturanPage() {
     ]
   }
 
-  if (categories.length === 0) {
+  if (isDummySupabase() && categories.length === 0) {
     categories = [
       { id: '1', nama: 'Tagihan Tidak Sesuai', aktif: true, urutan: 1 },
       { id: '2', nama: 'Harga Naik', aktif: true, urutan: 2 },
@@ -70,7 +67,7 @@ export default async function PengaturanPage() {
     ]
   }
 
-  if (handlingTypes.length === 0) {
+  if (isDummySupabase() && handlingTypes.length === 0) {
     handlingTypes = [
       { id: '1', nama: 'Selesai di Edukasi (Tanpa Eskalasi)', aktif: true, otomatis_selesai: true, urutan: 1 },
       { id: '2', nama: 'Eskalasi ke Bidang Pelayanan', aktif: true, otomatis_selesai: false, urutan: 2 },
@@ -80,7 +77,7 @@ export default async function PengaturanPage() {
   }
 
   // Fallback Master Wilayah bawaan dari Master Wilayah.xlsx
-  if (districts.length === 0) {
+  if (isDummySupabase() && districts.length === 0) {
     districts = MASTER_WILAYAH_PDAM.map((k) => ({
       id: `dist-${k.kode_kecamatan}`,
       kode_kecamatan: k.kode_kecamatan,
@@ -89,7 +86,7 @@ export default async function PengaturanPage() {
     }))
   }
 
-  if (villages.length === 0) {
+  if (isDummySupabase() && villages.length === 0) {
     villages = []
     MASTER_WILAYAH_PDAM.forEach((k) => {
       k.desa.forEach((d) => {
