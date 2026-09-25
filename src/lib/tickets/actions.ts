@@ -89,6 +89,23 @@ export async function createTicket(
 
   const supabase = createClient()
 
+  // 1. Validasi Customer ID: Pastikan yang masuk ke customer_ref_id adalah UUID asli
+  let finalCustomerRefId = parsed.data.customerRefId ?? null;
+  
+  if (parsed.data.customerIdInput) {
+    const { data: customerLookup, error: lookupErr } = await supabase
+      .from('customer_master')
+      .select('id')
+      .eq('customer_id', parsed.data.customerIdInput)
+      .single()
+      
+    if (lookupErr || !customerLookup) {
+      return { error: { _root: [`Nomor pelanggan ${parsed.data.customerIdInput} tidak ditemukan di database asli.`] } }
+    }
+    
+    finalCustomerRefId = customerLookup.id;
+  }
+
   // Determine status from handling_type (BR-004)
   const { data: handlingType, error: htError } = await supabase
     .from('handling_types')
@@ -107,7 +124,7 @@ export async function createTicket(
     .insert({
       timestamp: parsed.data.timestamp,
       customer_id_input: parsed.data.customerIdInput ?? null,
-      customer_ref_id: parsed.data.customerRefId ?? null,
+      customer_ref_id: finalCustomerRefId,
       kecamatan_id: parsed.data.kecamatanId ?? null,
       desa_id: parsed.data.desaId ?? null,
       customer_name: parsed.data.customerName,
