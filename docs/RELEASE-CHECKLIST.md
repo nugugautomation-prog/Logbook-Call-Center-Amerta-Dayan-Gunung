@@ -193,7 +193,7 @@ Semua variabel berikut harus diisi di Vercel Dashboard (Settings > Environment V
 
 > **Peringatan:** Jika `NEXT_PUBLIC_SUPABASE_URL` tidak diisi atau diisi `dummy-pdam-project`, aplikasi akan berjalan dalam mode demo dan tidak menyimpan data ke database nyata.
 
-> **Temuan dari analisis kode:** `SUPABASE_SERVICE_ROLE_KEY` dipakai oleh backup/manual-trigger.ts tetapi TIDAK terdaftar di .env.local.example. Harus ditambahkan ke .env.local.example agar tidak terlewat saat setup.
+> **Temuan Keamanan (Sudah Diperbaiki):** Sebelumnya ada risiko cookie `pdam_demo_auth` dapat mem-bypass autentikasi Supabase di production jika cookie terbawa dari testing. Bug ini *telah diperbaiki* di `middleware.ts` dan `auth/actions.ts` sehingga auth demo sepenuhnya diabaikan jika URL Supabase adalah URL production.
 
 ---
 

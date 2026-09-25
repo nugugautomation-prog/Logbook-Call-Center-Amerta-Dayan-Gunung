@@ -15,16 +15,12 @@ export async function signIn(
     return { error: 'Email dan password wajib diisi' }
   }
 
-  // 1. Cek Mode Pengujian Lokal / Offline Demo
-  const testEmail = process.env.TEST_ADMIN_EMAIL || 'admin@pdam.id'
-  const testPassword = process.env.TEST_ADMIN_PASSWORD || 'admin123'
+  // 1. Mode Pengujian Lokal / Offline Demo — hanya aktif saat URL tidak diisi atau dummy
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  if (supabaseUrl.includes('dummy-pdam-project') || !supabaseUrl) {
+    const testEmail = process.env.TEST_ADMIN_EMAIL || 'admin@pdam.id'
+    const testPassword = process.env.TEST_ADMIN_PASSWORD || 'admin123'
 
-  if (
-    supabaseUrl.includes('dummy-pdam-project') ||
-    !supabaseUrl ||
-    (email === testEmail && password === testPassword)
-  ) {
     if (email === testEmail && password === testPassword) {
       // Simpan cookie sesi demo
       cookies().set('pdam_demo_auth', 'authenticated', {
@@ -35,10 +31,10 @@ export async function signIn(
         maxAge: 60 * 60 * 24 * 7, // 7 hari
       })
       return { success: true }
-    } else if (supabaseUrl.includes('dummy-pdam-project')) {
-      return {
-        error: `Mode demo lokal: gunakan email "${testEmail}" dan password "${testPassword}"`,
-      }
+    }
+
+    return {
+      error: `Mode demo lokal: gunakan email "${testEmail}" dan password "${testPassword}"`,
     }
   }
 
@@ -69,9 +65,12 @@ export async function signOut(): Promise<{ success: boolean }> {
 }
 
 export async function getSession() {
-  const isDemoAuth = cookies().get('pdam_demo_auth')?.value === 'authenticated'
-  if (isDemoAuth) {
-    return { user: { email: 'admin@pdam.id', role: 'admin' } }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  if (supabaseUrl.includes('dummy-pdam-project') || !supabaseUrl) {
+    const isDemoAuth = cookies().get('pdam_demo_auth')?.value === 'authenticated'
+    if (isDemoAuth) {
+      return { user: { email: 'admin@pdam.id', role: 'admin' } }
+    }
   }
 
   try {

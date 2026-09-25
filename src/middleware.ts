@@ -69,17 +69,15 @@ export async function middleware(request: NextRequest) {
       data: { session },
     } = await supabase.auth.getSession()
 
-    const isDemoAuth = request.cookies.get('pdam_demo_auth')?.value === 'authenticated'
-
     // Redirect unauthenticated users to login
-    if (!session && !isDemoAuth && !isPublicRoute) {
+    if (!session && !isPublicRoute) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
       return NextResponse.redirect(url)
     }
 
     // Redirect authenticated users away from login
-    if ((session || isDemoAuth) && isLoginPage) {
+    if (session && isLoginPage) {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)
