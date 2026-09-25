@@ -93,17 +93,17 @@ export async function createTicket(
   let finalCustomerRefId = parsed.data.customerRefId ?? null;
   
   if (parsed.data.customerIdInput) {
-    const { data: customerLookup, error: lookupErr } = await supabase
+    const { data: customerLookup } = await supabase
       .from('customer_master')
       .select('id')
       .eq('customer_id', parsed.data.customerIdInput)
-      .single()
+      .maybeSingle()
       
-    if (lookupErr || !customerLookup) {
-      return { error: { _root: [`Nomor pelanggan ${parsed.data.customerIdInput} tidak ditemukan di database asli.`] } }
+    if (customerLookup) {
+      finalCustomerRefId = customerLookup.id;
+    } else {
+      finalCustomerRefId = null;
     }
-    
-    finalCustomerRefId = customerLookup.id;
   }
 
   // Determine status from handling_type (BR-004)
