@@ -46,27 +46,49 @@ export async function GET(request: NextRequest) {
         endISO = endDate
       }
 
-    const { data, error } = await supabase
-      .from('tickets')
-      .select(`
-        ticket_number, timestamp, customer_id_input,
-        customer_name, alamat_detail, customer_phone, channel,
-        detail, status, updated_at, screenshot_path,
-        kecamatan:districts(nama_kecamatan),
-        desa:villages(nama_desa),
-        jenis_interaksi:interaction_types(nama),
-        kategori:categories(nama),
-        tujuan:handling_types(nama)
-      `)
-      .gte('created_at', startISO)
-      .lte('created_at', endISO)
-      .order('timestamp', { ascending: true })
+      // Pagination loop to bypass Supabase's 1000 max-rows limit per request
+      const PAGE_SIZE = 1000
+      let allData: any[] = []
+      let offset = 0
+      let hasMore = true
 
-    if (error) {
-      return NextResponse.json({ error: 'Gagal mengambil data' }, { status: 500 })
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('tickets')
+          .select(`
+            ticket_number, timestamp, customer_id_input,
+            customer_name, alamat_detail, customer_phone, channel,
+            detail, status, updated_at, screenshot_path,
+            kecamatan:districts(nama_kecamatan),
+            desa:villages(nama_desa),
+            jenis_interaksi:interaction_types(nama),
+            kategori:categories(nama),
+            tujuan:handling_types(nama)
+          `)
+          .gte('created_at', startISO)
+          .lte('created_at', endISO)
+          .order('timestamp', { ascending: true })
+          .range(offset, offset + PAGE_SIZE - 1)
+
+        if (error) {
+          console.error('Export fetch error:', error)
+          return NextResponse.json({ error: 'Gagal mengambil data' }, { status: 500 })
+        }
+
+        if (data && data.length > 0) {
+          allData = [...allData, ...data]
+          if (data.length < PAGE_SIZE) {
+            hasMore = false // Reached the end
+          } else {
+            offset += PAGE_SIZE
+          }
+        } else {
+          hasMore = false
+        }
+      }
+      
+      tickets = allData
     }
-    tickets = data || []
-  }
 
   const getJoined = (val: any, field: string) => {
     if (!val) return '-'
