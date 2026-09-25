@@ -4,7 +4,7 @@ import { lookupCustomer, type CustomerLookupResult } from '@/lib/customers/looku
 import { Spinner } from '@/components/ui/Spinner'
 
 interface CustomerIdInputProps {
-  onLookupResult: (result: CustomerLookupResult) => void
+  onLookupResult: (result: CustomerLookupResult, rawId: string) => void
   error?: string
 }
 
@@ -27,11 +27,11 @@ export function CustomerIdInput({ onLookupResult, error }: CustomerIdInputProps)
           const result = await lookupCustomer(raw)
           setLookupResult(result)
           setIsLooking(false)
-          onLookupResult(result)
+          onLookupResult(result, raw)
         }, 400)
       } else {
         setLookupResult(null)
-        onLookupResult({ type: 'not_found' })
+        onLookupResult({ type: 'not_found' }, raw)
       }
     },
     [onLookupResult]

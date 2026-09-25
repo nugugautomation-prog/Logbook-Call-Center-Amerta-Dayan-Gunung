@@ -238,8 +238,8 @@ export function TicketForm({
 
       {/* Customer ID autofill */}
       <CustomerIdInput
-        onLookupResult={(result) => {
-          setCustomerIdInput('')
+        onLookupResult={(result, rawId) => {
+          setCustomerIdInput(rawId)
           handleLookupResult(result)
         }}
         error={errors.customerIdInput}
