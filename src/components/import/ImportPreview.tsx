@@ -65,18 +65,33 @@ export function ImportPreview({ fileName, parseResult, onCancel, onSuccess }: Im
         .map((r) => `Baris ${r.rowIndex}: ${r.errorReason}`)
         .join('; ')
 
-      // Kirim sample/chunk ke server action
-      const sampleValidRows = validRowsOnly.slice(0, 1000)
+      // Kirim data ke server action secara bertahap (chunking per 1000 baris) untuk hindari limit 1MB
+      const CHUNK_SIZE = 1000
+      let currentBatchId: string | undefined = undefined
+      
+      for (let i = 0; i < validRowsOnly.length; i += CHUNK_SIZE) {
+        const chunk = validRowsOnly.slice(i, i + CHUNK_SIZE)
+        
+        const res = await applyCustomerImportBatch(
+          fileName,
+          parseResult.totalRows, // jumlah_baris_terbaca
+          chunk,                 // data chunk ini
+          parseResult.errorCount,
+          errorSummary,
+          currentBatchId,        // batchId dari chunk pertama
+          validRowsOnly.length   // jumlah_baris_valid (total real)
+        )
 
-      const res = await applyCustomerImportBatch(
-        fileName,
-        parseResult.totalRows,
-        sampleValidRows,
-        parseResult.errorCount,
-        errorSummary
-      )
+        if (!res.success) {
+          throw new Error(res.error || 'Gagal menyimpan batch')
+        }
+        
+        if (res.batchId) {
+          currentBatchId = res.batchId
+        }
+      }
 
-      if (res.success && res.batchId) {
+      if (currentBatchId) {
         // Simpan seluruh data pelanggan valid ke IndexedDB agar semua ID bisa diautofill
         try {
           await saveCustomersToIndexedDB(validRowsOnly, fileName)

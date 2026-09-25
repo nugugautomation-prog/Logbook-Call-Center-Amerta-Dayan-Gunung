@@ -21,7 +21,9 @@ export async function applyCustomerImportBatch(
   totalRows: number,
   validRows: ImportCustomerInput[],
   errorRowsCount: number,
-  errorSummary?: string
+  errorSummary?: string,
+  existingBatchId?: string,
+  totalValidCount?: number
 ): Promise<{ success: boolean; batchId?: string; error?: string }> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 
@@ -31,34 +33,39 @@ export async function applyCustomerImportBatch(
     revalidatePath('/tiket/tambah')
     return {
       success: true,
-      batchId: `batch-local-${Date.now()}`,
+      batchId: existingBatchId || `batch-local-${Date.now()}`,
     }
   }
 
   const supabase = createClient()
 
   try {
-    // 1. Create import batch record
-    const { data: batch, error: batchError } = await supabase
-      .from('import_batches')
-      .insert({
-        nama_file: fileName,
-        jumlah_baris_terbaca: totalRows,
-        jumlah_baris_valid: validRows.length,
-        jumlah_baris_error: errorRowsCount,
-        status: 'Diterapkan',
-        catatan_error: errorSummary || null,
-      })
-      .select('id')
-      .single()
+    let batchId = existingBatchId
 
-    if (batchError || !batch) {
-      console.error('Batch error:', batchError)
-      return { success: false, error: `Gagal membuat batch: ${batchError?.message || 'Unknown DB Error'}` }
+    // 1. Create import batch record JIKA belum ada
+    if (!batchId) {
+      const { data: batch, error: batchError } = await supabase
+        .from('import_batches')
+        .insert({
+          nama_file: fileName,
+          jumlah_baris_terbaca: totalRows,
+          jumlah_baris_valid: totalValidCount ?? validRows.length,
+          jumlah_baris_error: errorRowsCount,
+          status: 'Diterapkan',
+          catatan_error: errorSummary || null,
+        })
+        .select('id')
+        .single()
+
+      if (batchError || !batch) {
+        console.error('Batch error:', batchError)
+        return { success: false, error: `Gagal membuat batch: ${batchError?.message || 'Unknown DB Error'}` }
+      }
+      batchId = batch.id
     }
 
-    // 2. Upsert valid customers in chunks of 100
-    const chunkSize = 100
+    // 2. Upsert valid customers in chunks of 500
+    const chunkSize = 500
     for (let i = 0; i < validRows.length; i += chunkSize) {
       const chunk = validRows.slice(i, i + chunkSize)
       const records = chunk.map((c) => ({
@@ -72,7 +79,7 @@ export async function applyCustomerImportBatch(
         longitude: c.longitude,
         kecamatan_id: c.kecamatanId,
         desa_id: c.desaId,
-        import_batch_id: batch.id,
+        import_batch_id: batchId,
         updated_at: new Date().toISOString(),
       }))
 
@@ -88,7 +95,7 @@ export async function applyCustomerImportBatch(
 
     revalidatePath('/pengaturan/import-pelanggan')
     revalidatePath('/tiket/tambah')
-    return { success: true, batchId: batch.id }
+    return { success: true, batchId }
   } catch (err: unknown) {
     console.error('Exception applying customer import:', err)
     return {
