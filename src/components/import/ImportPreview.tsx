@@ -68,23 +68,26 @@ export function ImportPreview({ fileName, parseResult, onCancel, onSuccess }: Im
       // Kirim data ke server action secara bertahap (chunking per 1000 baris) untuk hindari limit 1MB
       const CHUNK_SIZE = 1000
       let currentBatchId: string | undefined = undefined
+      let rowsProcessed = 0
       
       for (let i = 0; i < validRowsOnly.length; i += CHUNK_SIZE) {
         const chunk = validRowsOnly.slice(i, i + CHUNK_SIZE)
         
         const res = await applyCustomerImportBatch(
           fileName,
-          parseResult.totalRows, // jumlah_baris_terbaca
-          chunk,                 // data chunk ini
+          parseResult.totalRows, 
+          chunk,                 
           parseResult.errorCount,
           errorSummary,
-          currentBatchId,        // batchId dari chunk pertama
-          validRowsOnly.length   // jumlah_baris_valid (total real)
+          currentBatchId,        
+          validRowsOnly.length   
         )
 
         if (!res.success) {
-          throw new Error(res.error || 'Gagal menyimpan batch')
+          throw new Error(`Gagal di baris ${rowsProcessed + 1}-${rowsProcessed + chunk.length}: ${res.error || 'Server error'}`)
         }
+        
+        rowsProcessed += chunk.length
         
         if (res.batchId) {
           currentBatchId = res.batchId
@@ -116,9 +119,9 @@ export function ImportPreview({ fileName, parseResult, onCancel, onSuccess }: Im
         } catch {
           // Ignore localStorage quota errors
         }
-        onSuccess(res.batchId)
+        onSuccess(currentBatchId)
       } else {
-        setError(res.error || 'Gagal menerapkan impor data.')
+        setError('Gagal menerapkan impor data. Tidak ada respon dari server.')
       }
     } catch (err: unknown) {
       console.error('Import error details:', err)
