@@ -19,10 +19,23 @@ interface MasterData {
   nama: string
 }
 
+interface DistrictData {
+  id: string
+  nama_kecamatan: string
+}
+
+interface VillageData {
+  id: string
+  kecamatan_id: string
+  nama_desa: string
+}
+
 interface TicketFormProps {
   interactionTypes: MasterData[]
   categories: MasterData[]
   handlingTypes: MasterData[]
+  districts: DistrictData[]
+  villages: VillageData[]
 }
 
 interface FormErrors {
@@ -33,6 +46,8 @@ export function TicketForm({
   interactionTypes,
   categories,
   handlingTypes,
+  districts,
+  villages,
 }: TicketFormProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -281,6 +296,33 @@ export function TicketForm({
         placeholder="Contoh: 081234567890"
         hint="Hanya angka (BR-001)"
       />
+
+      {/* Wilayah (Kecamatan & Desa) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Select
+          id="kecamatanId"
+          label="Kecamatan"
+          value={kecamatanId}
+          onChange={(e) => {
+            setKecamatanId(e.target.value)
+            setDesaId('') // Reset desa jika kecamatan berubah
+          }}
+          options={districts.map(d => ({ value: d.id, label: d.nama_kecamatan }))}
+          placeholder="-- Pilih Kecamatan --"
+        />
+
+        <Select
+          id="desaId"
+          label="Desa"
+          value={desaId}
+          onChange={(e) => setDesaId(e.target.value)}
+          options={villages
+            .filter(v => v.kecamatan_id === kecamatanId)
+            .map(v => ({ value: v.id, label: v.nama_desa }))}
+          placeholder="-- Pilih Desa --"
+          disabled={!kecamatanId}
+        />
+      </div>
 
       {/* Kanal Komunikasi */}
       <div className="flex flex-col gap-2">

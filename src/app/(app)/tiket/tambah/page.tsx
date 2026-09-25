@@ -37,6 +37,8 @@ export default async function TambahTiketPage() {
           interactionTypes={DEFAULT_INTERACTIONS}
           categories={DEFAULT_CATEGORIES}
           handlingTypes={DEFAULT_HANDLING_TYPES}
+          districts={[]}
+          villages={[]}
         />
       </AppShell>
     )
@@ -49,6 +51,8 @@ export default async function TambahTiketPage() {
       { data: interactionTypes },
       { data: categories },
       { data: handlingTypes },
+      { data: districts },
+      { data: villages },
     ] = await Promise.all([
       supabase
         .from('interaction_types')
@@ -65,6 +69,14 @@ export default async function TambahTiketPage() {
         .select('id, nama')
         .eq('aktif', true)
         .order('urutan'),
+      supabase
+        .from('districts')
+        .select('id, nama_kecamatan')
+        .order('nama_kecamatan'),
+      supabase
+        .from('villages')
+        .select('id, kecamatan_id, nama_desa')
+        .order('nama_desa'),
     ])
 
     return (
@@ -73,6 +85,8 @@ export default async function TambahTiketPage() {
           interactionTypes={interactionTypes ?? DEFAULT_INTERACTIONS}
           categories={categories ?? DEFAULT_CATEGORIES}
           handlingTypes={handlingTypes ?? DEFAULT_HANDLING_TYPES}
+          districts={districts ?? []}
+          villages={villages ?? []}
         />
       </AppShell>
     )
@@ -83,6 +97,8 @@ export default async function TambahTiketPage() {
           interactionTypes={DEFAULT_INTERACTIONS}
           categories={DEFAULT_CATEGORIES}
           handlingTypes={DEFAULT_HANDLING_TYPES}
+          districts={[]}
+          villages={[]}
         />
       </AppShell>
     )
