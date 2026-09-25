@@ -128,7 +128,7 @@ export async function createTicket(
 
   if (error || !ticket) {
     console.error('createTicket error:', error)
-    return { error: { _root: ['Gagal menyimpan tiket. Silakan coba lagi.'] } }
+    return { error: { _root: [`Gagal menyimpan tiket: ${error?.message || 'Unknown'}`] } }
   }
 
   // Record initial status in history (trigger also handles updates, but we record creation)
