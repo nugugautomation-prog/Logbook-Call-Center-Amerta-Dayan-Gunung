@@ -44,7 +44,8 @@ export async function signIn(
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      return { error: 'Email atau password salah. Silakan periksa kembali.' }
+      console.error('DEBUG SUPABASE AUTH ERROR:', error)
+      return { error: `[Error Sistem]: ${error.message}. (Cek copy-paste kunci/URL di Vercel!)` }
     }
   } catch (err) {
     return { error: 'Gagal menghubungi server autentikasi.' }
