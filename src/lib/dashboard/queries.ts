@@ -82,8 +82,8 @@ export async function getDashboardSummary(start: string, end: string) {
         kategori:categories(nama),
         tujuan:handling_types(nama)
       `)
-      .gte('created_at', start)
-      .lte('created_at', end)
+      .gte('timestamp', start)
+      .lte('timestamp', end)
 
     if (!tickets || tickets.length === 0) {
       return {
@@ -153,8 +153,8 @@ export async function getTopWilayah(start: string, end: string) {
         kecamatan:districts(nama_kecamatan),
         desa:villages(nama_desa)
       `)
-      .gte('created_at', start)
-      .lte('created_at', end)
+      .gte('timestamp', start)
+      .lte('timestamp', end)
       .not('desa_id', 'is', null)
 
     if (!data) return []
@@ -195,8 +195,8 @@ export async function getRekapKecamatan(start: string, end: string) {
       .select(`
         kecamatan:districts(nama_kecamatan, kode_kecamatan)
       `)
-      .gte('created_at', start)
-      .lte('created_at', end)
+      .gte('timestamp', start)
+      .lte('timestamp', end)
 
     const cabangMap: Record<string, number> = {
       Tanjung: 0,
@@ -249,11 +249,11 @@ export async function getAgingReport() {
     const { data } = await supabase
       .from('tickets')
       .select(`
-        id, ticket_number, customer_name, created_at, channel,
+        id, ticket_number, customer_name, timestamp, channel,
         tujuan:handling_types(nama)
       `)
       .eq('status', 'Berjalan')
-      .order('created_at', { ascending: true })
+      .order('timestamp', { ascending: true })
       .limit(20)
 
     if (!data) return []
@@ -285,7 +285,7 @@ export async function getPelangganBerulang() {
     const { data } = await supabase
       .from('tickets')
       .select('customer_id_input, customer_name')
-      .gte('created_at', thirtyDaysAgo)
+      .gte('timestamp', thirtyDaysAgo)
       .not('customer_id_input', 'is', null)
 
     if (!data) return []
@@ -323,16 +323,16 @@ export async function getTrendHarian(start: string, end: string) {
     const supabase = createClient()
     const { data } = await supabase
       .from('tickets')
-      .select('created_at')
-      .gte('created_at', start)
-      .lte('created_at', end)
-      .order('created_at')
+      .select('timestamp')
+      .gte('timestamp', start)
+      .lte('timestamp', end)
+      .order('timestamp')
 
     if (!data) return []
 
     const dayMap: Record<string, number> = {}
     data.forEach((t: any) => {
-      const day = t.created_at.slice(0, 10)
+      const day = t.timestamp.slice(0, 10)
       dayMap[day] = (dayMap[day] ?? 0) + 1
     })
 

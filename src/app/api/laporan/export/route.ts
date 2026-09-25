@@ -65,8 +65,8 @@ export async function GET(request: NextRequest) {
             kategori:categories(nama),
             tujuan:handling_types(nama)
           `)
-          .gte('created_at', startISO)
-          .lte('created_at', endISO)
+          .gte('timestamp', startISO)
+          .lte('timestamp', endISO)
           .order('timestamp', { ascending: true })
           .range(offset, offset + PAGE_SIZE - 1)
 
