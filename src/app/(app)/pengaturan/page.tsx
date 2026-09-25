@@ -7,10 +7,13 @@ import { UploadCloud, ShieldCheck, MapPin } from 'lucide-react'
 import { MasterDataStatusBanner } from '@/components/settings/MasterDataStatusBanner'
 import { SignOutButton } from '@/components/auth/SignOutButton'
 import { isDummySupabase } from '@/lib/supabase/is-dummy'
+import { getSession } from '@/lib/auth/actions'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PengaturanPage() {
+  const session = await getSession()
+  const userEmail = session?.user?.email || 'admin@pdam.id'
   let interactionTypes: any[] = []
   let categories: any[] = []
   let handlingTypes: any[] = []
@@ -252,7 +255,7 @@ export default async function PengaturanPage() {
           <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 shadow-sm space-y-3">
             <h2 className="text-sm font-semibold text-[#1A202C]">Akun & Sesi Admin</h2>
             <p className="text-xs text-[#718096]">
-              Masuk sebagai: <strong className="text-[#1A202C]">admin@pdam.id</strong>
+              Masuk sebagai: <strong className="text-[#1A202C]">{userEmail}</strong>
             </p>
             <SignOutButton />
           </div>
