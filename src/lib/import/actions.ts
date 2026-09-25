@@ -82,7 +82,7 @@ export async function applyCustomerImportBatch(
 
       if (upsertError) {
         console.error('Error during customer upsert chunk:', upsertError)
-        return { success: false, error: 'Gagal menyimpan data pelanggan ke database.' }
+        return { success: false, error: `Gagal menyimpan data pelanggan: ${upsertError?.message || 'Unknown'}` }
       }
     }
 
