@@ -53,7 +53,8 @@ export async function applyCustomerImportBatch(
       .single()
 
     if (batchError || !batch) {
-      return { success: false, error: 'Gagal membuat batch impor di database.' }
+      console.error('Batch error:', batchError)
+      return { success: false, error: `Gagal membuat batch: ${batchError?.message || 'Unknown DB Error'}` }
     }
 
     // 2. Upsert valid customers in chunks of 100
